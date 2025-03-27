@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import { motion } from "motion/react"
 import { Clock } from "@/components/clock"
@@ -6,6 +6,18 @@ import { Clock } from "@/components/clock"
 export default function App() {
   // 添加搜索关键词状态
   const [searchQuery, setSearchQuery] = useState("")
+  const [username, setUsername] = useState("")
+  const [showDialog, setShowDialog] = useState(false)
+
+  useEffect(() => {
+    // 从localStorage获取用户名
+    const savedUsername = localStorage.getItem("username")
+    if (savedUsername) {
+      setUsername(savedUsername)
+    } else {
+      setShowDialog(true)
+    }
+  }, [])
 
   // 添加获取问候语的函数
   const getGreeting = () => {
@@ -43,6 +55,16 @@ export default function App() {
     }
   }
 
+  const handleUsernameSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const input = (e.target as HTMLFormElement).username.value
+    if (input.trim()) {
+      localStorage.setItem("username", input.trim())
+      setUsername(input.trim())
+      setShowDialog(false)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Main Content */}
@@ -54,7 +76,9 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-2xl font-medium">{getGreeting()}，TinsFox。</h2>
+            <h2 className="text-2xl font-medium">
+              {getGreeting()}，{username || "访客"}。
+            </h2>
           </motion.div>
 
           <motion.div
@@ -88,6 +112,29 @@ export default function App() {
           </motion.div>
         </div>
       </main>
+
+      {showDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-background p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-medium mb-4">请输入您的名字</h3>
+            <form onSubmit={handleUsernameSubmit}>
+              <input
+                type="text"
+                name="username"
+                className="w-full px-3 py-2 border rounded mb-4 bg-input border-input-border"
+                placeholder="请输入名字"
+                required
+              />
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+              >
+                确定
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
